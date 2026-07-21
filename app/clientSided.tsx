@@ -2,7 +2,7 @@
 
 import {useEffect, useState} from "react";
 
-export interface BroadcastElement {
+interface BroadcastElement {
     objectID: string,
     platform_id: string,
     datetime_start: string,
@@ -13,6 +13,21 @@ export interface BroadcastElement {
     title: string,
     cid: number
 }
+interface HomeshopElement {
+    cat: {cid: number, cat_name: string},
+    cid: number,
+    hsshow_datetime_end: string,
+    hsshow_datetime_start: string,
+    hsshow_id: string,
+    hsshow_title: string,
+    hsshow_url_live: string,
+    item_cnt: number,
+    platform_id: string,
+    platform_name: string,
+    sales_amt: number | null,
+    sales_cnt: number | null,
+    visit_cnt: number | null,
+}
 
 async function fetchDatas({type} : {type: string}) {
     const res2 = await fetch('https://live.ecomm-data.com/api/assignment/list', {
@@ -21,17 +36,17 @@ async function fetchDatas({type} : {type: string}) {
             'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-            type: 'lb',
+            type: type,
         }),
         cache: 'no-store', // 캐싱 방지 → 새로고침마다 실제로 다시 요청
     });
 
     return res2
 }
-//{listOfBroadcast = []}: {listOfBroadcast: BroadcastElement[]}
 export default function ClientSided() {
     const [switchedAs, setSwichedAs] = useState<'lb' | 'hs'>('lb');
     const [listOfBroadcast, setlistOfBroadcast] = useState<BroadcastElement[]>([]);
+    const [listOfHomeShop, setlistOfHomeShop] = useState<HomeshopElement[]>([]);
 
     // const datas = await fetchDatas();
     // const datasJson = await datas.json();
@@ -39,26 +54,71 @@ export default function ClientSided() {
     useEffect(() => {
         fetchDatas({type: switchedAs}).then(async (datas) => {
             const datasJson = await datas.json();
-            setlistOfBroadcast(datasJson.list || [])
+            if (switchedAs == 'lb') {
+                setlistOfBroadcast(datasJson.list || []);
+            } else {
+                setlistOfHomeShop(datasJson.list || []);
+            }
         })
     }, [switchedAs]);
 
     return (
-        <div style={{display: 'flex', flexDirection: 'column'}}>
-            <div style={{width: '300px', borderWidth: '2px', borderColor: 'aliceblue', display: 'flex', flexDirection: 'row', justifyContent: 'center'}} onClick={() => setSwichedAs((prevState) => prevState == 'lb' ? 'hs' : 'lb')}>
+        <div style={{display: 'flex', flexDirection: 'column', width: '700px'}}>
+            <div style={{borderWidth: '2px', borderColor: 'aliceblue', display: 'flex', flexDirection: 'row', justifyContent: 'center'}} onClick={() => setSwichedAs((prevState) => prevState == 'lb' ? 'hs' : 'lb')}>
                 <h1>{switchedAs == 'lb' ? '라방(눌러서 변환)' : '홈쇼핑(눌러서 변환)'}</h1>
             </div>
-            <ul>
-                {listOfBroadcast.slice(0, 10).map((elements, i) => (
-                    <li key={i}>
-                        <div style={{width: '300px', height: '30px'}}>
-                            <div style={{display: 'flex', flexDirection: 'row', alignItems: 'center', height: '100%'}}>
-                                <p>{i + 1}</p>
-                            </div>
-                        </div>
-                    </li>
-                ))}
-            </ul>
+                <div style={{display: "grid", gridTemplateColumns: '30px 1.5fr 1fr 1fr 1fr 1fr 1fr 1fr'}}>
+                    <div></div>
+                    <div>방송정보</div>
+                    <div>분류</div>
+                    <div>방송시간</div>
+                    <div>조회수</div>
+                    <div>판매량</div>
+                    <div>매출액</div>
+                    <div>상품수</div>
+                </div>
+            <div>
+                <ul>
+                    {switchedAs == 'lb' ?
+                        listOfBroadcast.slice(0, 10).map((elements, i) => (
+                            <li key={i}>
+                                <div style={{width: '100%', height: '50px', display: "grid", gridTemplateColumns: '30px auto'}}>
+                                    <div style={{display: 'flex', flexDirection: 'row', alignItems: 'center', height: '100%'}}>
+                                        <p>{i + 1}</p>
+                                    </div>
+                                    <div style={{display: "grid", gridTemplateColumns: '1.5fr 1fr 1fr 1fr 1fr 1fr 1fr'}}>
+                                        <div></div>
+                                        <div></div>
+                                        <div></div>
+                                        <div></div>
+                                        <div></div>
+                                        <div></div>
+                                        <div></div>
+                                    </div>
+                                </div>
+                            </li>
+                        ))
+                        :
+                        listOfHomeShop.slice(0, 10).map((elements, i) => (
+                            <li key={i}>
+                                <div style={{width: '100%', height: '50px', display: "grid", gridTemplateColumns: '30px auto'}}>
+                                    <div style={{display: 'flex', flexDirection: 'row', alignItems: 'center', height: '100%'}}>
+                                        <p>{i + 1}</p>
+                                    </div>
+                                    <div style={{display: "grid", gridTemplateColumns: '1.5fr 1fr 1fr 1fr 1fr 1fr 1fr'}}>
+                                        <div></div>
+                                        <div></div>
+                                        <div></div>
+                                        <div></div>
+                                        <div></div>
+                                        <div></div>
+                                        <div></div>
+                                    </div>
+                                </div>
+                            </li>
+                        ))}
+                </ul>
+            </div>
         </div>
     )
 }
